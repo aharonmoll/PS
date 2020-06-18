@@ -5,14 +5,28 @@ gsVersion=15.2.0
 gsManagerServers=localhost
 
 echo "Please enter GS product type to install default is: [$gsType]"
-read newGsType
-[ -n "$newGsType" ] && gsType=$newGsType
-echo $gsType
+select gsType in "xap" "insightedge" "exit"; do
+case "$gsType" in
+    xap)
+    break;;
+    insightedge)
+    break;;
+    exit)
+    exit 0;;
+esac
+done
 
 echo "Please enter your GS version to install default is: [$gsVersion]"
-read newGsVersion
-[ -n "$newGsVersion" ] && gsVersion=$newGsVersion
-echo $gsVersion
+select gsVersion in "15.0.0" "15.2.0" "exit"; do
+case "$gsVersion" in
+    15.0.0)
+    break;;
+    15.2.0)
+    break;;
+    exit)
+    exit 0;;
+esac
+done
 
 echo "Please enter your GS_MANAGER_SERVERS default is: [$gsManagerServers]"
 read newGsManagerServers
@@ -63,8 +77,10 @@ echo DATE `date +"%D"` / TIME `date +"%T"`
 echo "VERSION ${gsType}"
 echo "URL for OpsManager :  <.   >."
 echo "URL for GS web-ui :   <.     >."
-echo "URL for Zeppelin NoteBook <   >"
 echo "Rest :   <. >"
+if [ "$gsType" == "insightedge" ]; then
+echo "URL for Zeppelin NoteBook <   >"
+fi
 echo "#######################################################"
 }
 
