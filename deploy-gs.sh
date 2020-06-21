@@ -1,37 +1,59 @@
 #!/bin/bash
 
-gsType=xap
-gsVersion=15.2.0
-gsManagerServers=localhost
+echo List of available product types:
+echo [1] xap
+echo [2] insightedge
 
-echo "Please enter GS product type to install default is: [$gsType]"
-select gsType in "xap" "insightedge" "exit"; do
-case "$gsType" in
-    xap)
-    break;;
-    insightedge)
-    break;;
-    exit)
-    exit 0;;
-esac
+while true; do
+    read -p 'Select product type by name or number:[' -i 1']' -e gsType
+    case $gsType in
+        1]1|1]|1]xap) gsType=xap; break;;
+        1]2|1]insightedge) gsType=insightedge; break;;
+        * ) echo 'Please enter product name or number: ';;
+    esac
 done
 
-echo "Please enter your GS version to install default is: [$gsVersion]"
-select gsVersion in "15.0.0" "15.2.0" "exit"; do
-case "$gsVersion" in
-    15.0.0)
-    break;;
-    15.2.0)
-    break;;
-    exit)
-    exit 0;;
-esac
+echo List of available product versions:
+echo [1] 15.2.0
+echo [2] 15.0.0
+
+while true; do
+    read -p 'Select product version by name or number:[' -i 1']' -e gsVersion
+    case $gsVersion in
+        1]1|1]|1]15.2.0) gsVersion=15.2.0; break;;
+        1]2|1]15.0.0) gsVersion=15.0.0; break;;
+        * ) echo 'Please enter product name or number: ';;
+    esac
 done
 
-echo "Please enter your GS_MANAGER_SERVERS default is: [$gsManagerServers]"
-read newGsManagerServers
-[ -n "$newGsManagerServers" ] && gsManagerServers=$newGsManagerServers
-echo $gsManagerServers
+echo List of available installation types: 
+echo [1] local 
+echo [2] cluster 
+
+while true; do
+    read -p 'Select installation type:[' -i 1']' -e gsManagerServers
+    case $gsManagerServers in
+        1]1|1]|1]local) read -p "To override default localhost enter machine host or ip: " -e host1;
+                        if [ -z "$host1" ]
+                        then
+                            gsManagerServers=localhost
+                            host1=localhost
+                        else
+                            gsManagerServers=$host1
+                        fi;
+			break;;
+        1]2|1]cluster)  
+        echo please enter 3 GS manager hosts:
+        read -p 'Enter Host #1:' -e host1;
+        gsManagerServers=$host1 
+        read -p 'Enter Host #2:' -e host2;
+        gsManagerServers=$gsManagerServers,$host2
+	read -p 'Enter Host #3:' -e host3;
+        gsManagerServers=$gsManagerServers,$host3
+         break;;
+        * ) echo 'Please enter installation type by name or number: ';;
+    esac
+done
 
 function installRemoteJava {
 	sudo yum -y install java-1.8.0-openjdk	
@@ -70,14 +92,21 @@ function startGS {
         echo "GS Ops Manager http://localhost:8090"
 }
 
+function settingGsManagers {
+        echo "settingGsManagers - Done!"
+        echo "setting manager GS"
+        echo -e "\nexport GS_MANAGER_SERVERS=$gsManagerServers">>gigaspaces-${gsType}-enterprise-${gsVersion}/bin/setenv-overrides.sh
+        echo "setting manager GS - Done!"
+}
+
 function endAnnouncement {
 echo "#######################################################"
 echo "SUMMARY :  SYSTEM INSTALLED SUCCESSFULLY"
 echo DATE `date +"%D"` / TIME `date +"%T"`
 echo "VERSION ${gsType}"
-echo "URL for OpsManager :  <.   >."
-echo "URL for GS web-ui :   <.     >."
-echo "Rest :   <. >"
+echo "URL for OpsManager :  <http://$host1:8090>"
+echo "URL for GS web-ui :   <http://$host1:8099>"
+echo "Rest :   <http://$host1:8090/v2 >"
 if [ "$gsType" == "insightedge" ]; then
 echo "URL for Zeppelin NoteBook <   >"
 fi
@@ -102,13 +131,9 @@ echo "unzipping GS"
 unzipGS
 echo "activating GS"
 activateGS
-if [ "$1" != "" ]; then
-	echo "setting manager GS"
-	echo -e "\nexport GS_MANAGER_SERVERS=$gsManagerServers">>gigaspaces-${gsType}-enterprise-${gsVersion}/bin/setenv-overrides.sh 	
-	echo "setting manager GS - Done!"
-fi
+echo "starting settingGsManagers"
+settingGsManagers
 echo "starting GS"
 startGS
 echo "ending the Installation"
 endAnnouncement
-
