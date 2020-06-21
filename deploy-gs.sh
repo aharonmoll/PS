@@ -108,7 +108,7 @@ echo "URL for OpsManager :  <http://$host1:8090>"
 echo "URL for GS web-ui :   <http://$host1:8099>"
 echo "Rest :   <http://$host1:8090/v2 >"
 if [ "$gsType" == "insightedge" ]; then
-echo "URL for Zeppelin NoteBook <   >"
+echo "URL for Zeppelin NoteBook <http://$host1:9090>"
 fi
 echo "#######################################################"
 }
