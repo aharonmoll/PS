@@ -85,7 +85,7 @@ function activateGS {
         license="Product=InsightEdge;Version=15.2;Type=ENTERPRISE;Customer=deShow_demo_DEV;Expiration=2020-Sep-12;Hash=RSQNeYbSzNPSUOINZQrK"
 	elif [ "$gsVersion" == "15.0.0" ]; then
         license="Product=InsightEdge;Version=15.0;Type=ENTERPRISE;Customer=deShow_demo_DEV;Expiration=2020-Sep-12;Hash=GNRuQxNQQeVjObQOukTM"
-fi
+	fi
         echo $license>gigaspaces-${gsType}-enterprise-${gsVersion}/gs-license.txt 
 	echo "activating GS - Done!"
 }
