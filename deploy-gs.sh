@@ -1,39 +1,61 @@
 #!/bin/bash
 
-echo List of available product types:
-echo [1] xap
-echo [2] insightedge
+if [ "$1" == "-h" ]; then
+	 echo "Usage: `basename $0` --silent"
+	 echo For silent installation with key value properties file
+	 echo no parameters for interactive installation
+	 exit 0
+elif [ "$1" == "--silent" ]; then
+        if [ -f gs_installation.properties ]; then
+            source gs_installation.properties
+        fi
+        if [ -z "$host1" ]; then
+        gsManagerServers=localhost
+        host1=localhost
+        else
+        gsManagerServers=$host1
+        fi
+        if [ ! -z "$host2" ]; then
+        gsManagerServers=$host1,$host2
+        fi
+        if [ ! -z "$host3" ]; then
+        gsManagerServers=$host1,$host2,$host3
+        fi
+else
+	echo List of available product types:
+	echo [1] xap
+	echo [2] insightedge
 
-while true; do
-    read -p 'Select product type by name or number:[' -i 1']' -e gsType
-    case $gsType in
-        1]1|1]|1]xap) gsType=xap; break;;
-        1]2|1]insightedge) gsType=insightedge; break;;
-        * ) echo 'Please enter product name or number: ';;
-    esac
-done
+	while true; do
+            read -p 'Select product type by name or number:[' -i 1']' -e gsType
+	    case $gsType in
+		1]1|1]|1]xap) gsType=xap; break;;
+		1]2|1]insightedge) gsType=insightedge; break;;
+		* ) echo 'Please enter product name or number: ';;
+	    esac
+	done
 
-echo List of available product versions:
-echo [1] 15.2.0
-echo [2] 15.0.0
+	echo List of available product versions:
+	echo [1] 15.2.0
+	echo [2] 15.0.0
 
-while true; do
-    read -p 'Select product version by name or number:[' -i 1']' -e gsVersion
-    case $gsVersion in
-        1]1|1]|1]15.2.0) gsVersion=15.2.0; break;;
-        1]2|1]15.0.0) gsVersion=15.0.0; break;;
-        * ) echo 'Please enter product name or number: ';;
-    esac
-done
+	while true; do
+	    read -p 'Select product version by name or number:[' -i 1']' -e gsVersion
+	    case $gsVersion in
+		1]1|1]|1]15.2.0) gsVersion=15.2.0; break;;
+		1]2|1]15.0.0) gsVersion=15.0.0; break;;
+		* ) echo 'Please enter product name or number: ';;
+	    esac
+	done
 
-echo List of available installation types: 
-echo [1] local 
-echo [2] cluster 
+	echo List of available installation types: 
+	echo [1] local 
+	echo [2] cluster 
 
-while true; do
-    read -p 'Select installation type:[' -i 1']' -e gsManagerServers
-    case $gsManagerServers in
-        1]1|1]|1]local) read -p "To override default localhost enter machine host or ip: " -e host1;
+	while true; do
+	    read -p 'Select installation type:[' -i 1']' -e gsManagerServers
+	    case $gsManagerServers in
+		1]1|1]|1]local) read -p "To override default localhost enter machine host or ip: " -e host1;
                         if [ -z "$host1" ]
                         then
                             gsManagerServers=localhost
@@ -42,18 +64,19 @@ while true; do
                             gsManagerServers=$host1
                         fi;
 			break;;
-        1]2|1]cluster)  
-        echo please enter 3 GS manager hosts:
-        read -p 'Enter Host #1:' -e host1;
-        gsManagerServers=$host1 
-        read -p 'Enter Host #2:' -e host2;
-        gsManagerServers=$gsManagerServers,$host2
-	read -p 'Enter Host #3:' -e host3;
-        gsManagerServers=$gsManagerServers,$host3
-         break;;
-        * ) echo 'Please enter installation type by name or number: ';;
-    esac
-done
+		1]2|1]cluster)  
+		echo please enter 3 GS manager hosts:
+		read -p 'Enter Host #1:' -e host1;
+		gsManagerServers=$host1 
+		read -p 'Enter Host #2:' -e host2;
+		gsManagerServers=$gsManagerServers,$host2
+		read -p 'Enter Host #3:' -e host3;
+		gsManagerServers=$gsManagerServers,$host3
+		 break;;
+		* ) echo 'Please enter installation type by name or number: ';;
+	    esac
+	done
+fi
 
 function installRemoteJava {
 	sudo yum -y install java-1.8.0-openjdk	
@@ -85,7 +108,7 @@ function activateGS {
         license="Product=InsightEdge;Version=15.2;Type=ENTERPRISE;Customer=deShow_demo_DEV;Expiration=2020-Sep-12;Hash=RSQNeYbSzNPSUOINZQrK"
 	elif [ "$gsVersion" == "15.0.0" ]; then
         license="Product=InsightEdge;Version=15.0;Type=ENTERPRISE;Customer=deShow_demo_DEV;Expiration=2020-Sep-12;Hash=GNRuQxNQQeVjObQOukTM"
-	fi
+fi
         echo $license>gigaspaces-${gsType}-enterprise-${gsVersion}/gs-license.txt 
 	echo "activating GS - Done!"
 }
@@ -118,12 +141,6 @@ fi
 echo "#######################################################"
 }
 
-if [ "$1" == "-h" ]; then
-  echo "For cluster setup:"
-  echo "Usage: `basename $0` [GS_Manager_Host1,GS_Manager_Host2,GS_Manager_Host3]"
-  echo "For none cluster installation (one host) no paramter is required, the installation will be based on machine localhost"
-  exit 0
-fi
 echo "setup java"
 installRemoteJava
 echo "setp zip"
