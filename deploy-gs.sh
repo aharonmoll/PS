@@ -76,6 +76,16 @@ else
 		* ) echo 'Please enter installation type by name or number: ';;
 	    esac
 	done
+	read -p "To override default number of containers to rise [Default is none]: " -e containerCnt;
+	if [ ! -z "$containerCnt" ]
+        then
+		read -p "To override default containers heap [Default is 512m] please specify units (m/g): " -e containerMem;
+		if [ ! -z "$containerMem" ]
+		then
+		       export GS_GSC_OPTIONS="-Xmx$containerMem -Xms$containerMem"
+		fi;	
+        fi;
+        read -p "Enter XPA root directory here [Default is none]: " -e xpaDir;
 fi
 
 function installRemoteJava {
@@ -114,17 +124,31 @@ fi
 }
 
 function startGS {
-        nohup gigaspaces-${gsType}-enterprise-${gsVersion}/bin/gs.sh host run-agent --auto &
+	if [ -z "$containerCnt" ]
+        then    
+		nohup gigaspaces-${gsType}-enterprise-${gsVersion}/bin/gs.sh host run-agent --auto &
+        else    
+                if [ ! -z "$containerMem" ]
+                then
+                       export GS_GSC_OPTIONS="-Xmx$containerMem -Xms$containerMem"
+                fi;
+		nohup gigaspaces-${gsType}-enterprise-${gsVersion}/bin/gs.sh host run-agent --auto --gsc=$containerCnt &
+        fi; 
 	echo "starting GS - Done!"
         echo "GS Web-UI http://localhost:8099"
         echo "GS Ops Manager http://localhost:8090"
 }
 
 function settingGsManagers {
-        echo "settingGsManagers - Done!"
         echo "setting manager GS"
         echo -e "\nexport GS_MANAGER_SERVERS=$gsManagerServers">>gigaspaces-${gsType}-enterprise-${gsVersion}/bin/setenv-overrides.sh
         echo "setting manager GS - Done!"
+}
+
+function customSetUp {
+        cp $xpaDir/GigaSpaces-xpa/lib/xpa/*.jar gigaspaces-${gsType}-enterprise-${gsVersion}/lib/optional/pu-common
+        cp $xpaDir/GigaSpaces-xpa/config/gsa/*.xml gigaspaces-${gsType}-enterprise-${gsVersion}/config/gsa
+        echo "customSetUp - Done!"
 }
 
 function endAnnouncement {
@@ -155,6 +179,11 @@ echo "activating GS"
 activateGS
 echo "starting settingGsManagers"
 settingGsManagers
+if [ ! -z "$xpaDir" ]
+then
+	echo "custom set up"
+	customSetUp
+fi
 echo "starting GS"
 startGS
 echo "ending the Installation"
